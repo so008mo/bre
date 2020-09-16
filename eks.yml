@@ -3,8 +3,8 @@
   connection: local
   gather_facts: False
   vars:
-    region: "{{ region }}"
-    env: "{{ env }}"
+    region: "us-east-1"
+    env: "dev"
 
   roles:
     - role: eks
