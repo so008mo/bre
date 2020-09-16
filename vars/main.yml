@@ -132,7 +132,7 @@ vpcCfg:
     
     eksImageId: ami-0c8a11610abe0a666
     
-    keyPairName: bre-vpc
+    keyPairName: bre-vpc-dev
 
     vpc_id: vpc-02b4dcb4f219b91e9
     
