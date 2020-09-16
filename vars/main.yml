@@ -7,7 +7,7 @@ product: bre
 
 techContact: Soumya.Mohanty@pb.com
 
-k8sVersion: 1.17
+k8sVersion: 1.16
 
 # AWS Regions
 # Source: http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_website_region_endpoints
