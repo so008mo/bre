@@ -1,0 +1,155 @@
+---
+
+# default region
+region: us-east-1
+
+product: bre
+
+techContact: Soumya.Mohanty@pb.com
+
+k8sVersion: 1.17
+
+# AWS Regions
+# Source: http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_website_region_endpoints
+regions:
+  ap-southeast-1:
+    locationDescription: Singapore
+    regionIata: sin
+    vpcAvailabilityZone1: ap-southeast-1a
+    vpcAvailabilityZone2: ap-southeast-1b
+    aliasHostedZoneId: Z3O0J2DXBE1FTB
+    preferredBackupWindow: "18:30-19:00"
+    preferredMaintenanceWindow: "sat:18:00-sat:18:30"
+  ap-southeast-2:
+    locationDescription: Sydney
+    regionIata: syd
+    vpcAvailabilityZone1: ap-southeast-2a
+    vpcAvailabilityZone2: ap-southeast-2b
+    aliasHostedZoneId: Z1WCIGYICN2BYD
+    preferredBackupWindow: "16:30-17:00"
+    preferredMaintenanceWindow: "sat:16:00-sat:16:30"
+  ap-northeast-1:
+    locationDescription: Tokyo
+    regionIata: hnd
+    vpcAvailabilityZone1: ap-northeast-1a
+    vpcAvailabilityZone2: ap-northeast-1b
+    aliasHostedZoneId: Z2M4EHUR26P7ZW
+    preferredBackupWindow: "17:30-18:00"
+    preferredMaintenanceWindow: "sat:17:00-sat:17:30"
+  ap-northeast-2:
+    locationDescription: Seoul
+    regionIata: icn
+    vpcAvailabilityZone1: ap-northeast-2a
+    vpcAvailabilityZone2: ap-northeast-2c
+    aliasHostedZoneId: Z3W03O7B5YMIYP
+    preferredBackupWindow: "17:30-18:00"
+    preferredMaintenanceWindow: "sat:17:00-sat:17:30"
+  ap-south-1:
+    locationDescription: Mumbai
+    regionIata: bon
+    vpcAvailabilityZone1: ap-south-1a
+    vpcAvailabilityZone2: ap-south-1b
+    aliasHostedZoneId: Z11RGJOFQNVJUP
+    preferredBackupWindow: "14:00-14:30"
+    preferredMaintenanceWindow: "sat:13:30-sat:14:00"
+  eu-west-1:
+    locationDescription: Ireland
+    regionIata: dub
+    vpcAvailabilityZone1: eu-west-1a
+    vpcAvailabilityZone2: eu-west-1b
+    aliasHostedZoneId: Z1BKCTXD74EZPE
+    preferredBackupWindow: "01:30-02:00"
+    preferredMaintenanceWindow: "sat:01:00-sat:01:30"
+  eu-west-2:
+    locationDescription: London
+    regionIata: lhr
+    vpcAvailabilityZone1: eu-west-2a
+    vpcAvailabilityZone2: eu-west-2b
+    aliasHostedZoneId: Z3GKZC51ZF0DB4
+    preferredBackupWindow: "01:30-02:00"
+    preferredMaintenanceWindow: "sat:01:00-sat:01:30"
+  eu-central-1:
+    locationDescription: Frankfurt
+    regionIata: fra
+    vpcAvailabilityZone1: eu-central-1a
+    vpcAvailabilityZone2: eu-central-1b
+    aliasHostedZoneId: Z21DNDUVLTQW6Q
+    preferredBackupWindow: "02:30-03:00"
+    preferredMaintenanceWindow: "sat:02:00-sat:02:30"
+  sa-east-1:
+    locationDescription: SaoPaulo
+    regionIata: gru
+    vpcAvailabilityZone1: sa-east-1a
+    vpcAvailabilityZone2: sa-east-1b
+    aliasHostedZoneId: Z7KQH4QJS55SO
+    preferredBackupWindow: "05:30-06:00"
+    preferredMaintenanceWindow: "sat:05:00-sat:05:30"
+  us-east-1:
+    locationDescription: N.Virginia
+    regionIata: iad
+    vpcAvailabilityZone1: us-east-1a
+    vpcAvailabilityZone2: us-east-1b
+    aliasHostedZoneId: Z3AQBSTGFYJSTF
+    preferredBackupWindow: "06:30-07:00"
+    preferredMaintenanceWindow: "sat:06:00-sat:06:30"
+  us-east-2:
+    locationDescription: Ohio
+    regionIata: day
+    vpcAvailabilityZone1: us-east-2a
+    vpcAvailabilityZone2: us-east-2b
+    aliasHostedZoneId: Z2O1EMRO9K5GLX
+    preferredBackupWindow: "05:30-06:00"
+    preferredMaintenanceWindow: "sat:05:00-sat:05:30"
+  us-west-1:
+    locationDescription: NorthernCalifornia
+    regionIata: sfo
+    vpcAvailabilityZone1: us-west-1a
+    vpcAvailabilityZone2: us-west-1b
+    aliasHostedZoneId: Z2F56UZL2M1ACD
+    preferredBackupWindow: "09:30-10:00"
+    preferredMaintenanceWindow: "sat:09:00-sat:09:30"
+  us-west-2:
+    locationDescription: Oregon
+    regionIata: pdx
+    vpcAvailabilityZone1: us-west-2a
+    vpcAvailabilityZone2: us-west-2b
+    aliasHostedZoneId: Z3BJ6K6RIION7M
+    preferredBackupWindow: "08:30-09:00"
+    preferredMaintenanceWindow: "sat:08:00-sat:08:30"
+  ca-central-1:
+    locationDescription: CanadaCentral
+    regionIata: yul
+    vpcAvailabilityZone1: ca-central-1a
+    vpcAvailabilityZone2: ca-central-1b
+    aliasHostedZoneId: Z1QDHH18159H29
+    preferredBackupWindow: "06:30-07:00"
+    preferredMaintenanceWindow: "sat:06:00-sat:06:30"
+
+vpcCfg:
+  dev:
+    
+    vpcCidr: 10.98.176.0/22
+    
+    eksImageId: ami-0c8a11610abe0a666
+    
+    keyPairName: bre-vpc
+
+    vpc_id: vpc-02b4dcb4f219b91e9
+    
+    a_priv_subnet_id: subnet-082e58a25048ed9a4
+    
+    b_priv_subnet_id: subnet-0cbd6746c14b84803
+    
+    a_pub_subnet_id: subnet-022edb8011df273d3
+    
+    b_pub_subnet_id: subnet-08ecf92ed24c85b28
+    
+    eksNgSize: 1
+    
+    eksNgMinSize: 1
+    
+    eksNgMaxSize: 4
+
+    eksInstanceType: t2.medium
+
+    system_administrators: arn:aws:iam::210402781535:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_130-SystemAdministrator_f3dc9f6559204eef

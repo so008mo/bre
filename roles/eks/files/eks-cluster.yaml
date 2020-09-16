@@ -1,0 +1,74 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: "{{ eksClusterName }}"
+  region: "{{ region }}"
+  version: "{{ k8sVersion }}"
+
+vpc:
+  id: "{{ vpc_id }}"
+  subnets:
+    public:
+      {{ a_stack_az }}:
+        id: "{{ a_stack_pub_subnet }}"
+      {{ b_stack_az }}:
+        id: "{{ b_stack_pub_subnet }}"
+    private:
+      {{ a_stack_az }}:
+        id: "{{ a_stack_priv_subnet }}"
+      {{ b_stack_az }}:
+        id: "{{ b_stack_priv_subnet }}"
+        
+nodeGroups:
+- name: "{{ eksClusterName }}-ng-az1"
+  instanceType: "{{ eksInstanceType }}"
+  availabilityZones: ["{{ a_stack_az }}"]
+  desiredCapacity: {{ eksNgSize }}
+  minSize: {{ eksNgMinSize }}
+  maxSize: {{ eksNgMaxSize }}
+  privateNetworking: true
+  ssh:
+    publicKeyName: "{{ keyPairName }}"
+  iam:
+    withAddonPolicies:
+      externalDNS: true
+      autoScaler: true
+      efs: true
+      ebs: true
+      cloudWatch: true
+      certManager: true
+      albIngress: true
+  kubeletExtraConfig:
+    evictionHard:
+      memory.available:  "200Mi"
+      nodefs.available: "10%"
+  tags:
+    gcs-cluster-autoscaler-enabled: "true"
+    CrowdStrike_Exception: "EKS"  
+    
+- name: "{{ eksClusterName }}-ng-az2"
+  instanceType: "{{ eksInstanceType }}"
+  availabilityZones: ["{{ b_stack_az }}"]
+  desiredCapacity: {{ eksNgSize }}
+  minSize: {{ eksNgMinSize }}
+  maxSize: {{ eksNgMaxSize }}
+  privateNetworking: true
+  ssh:
+    publicKeyName: "{{ keyPairName }}"
+  iam:
+    withAddonPolicies:
+      externalDNS: true
+      autoScaler: true
+      efs: true
+      ebs: true
+      cloudWatch: true
+      certManager: true
+      albIngress: true
+  kubeletExtraConfig:
+    evictionHard:
+      memory.available:  "200Mi"
+      nodefs.available: "10%"
+  tags:
+    gcs-cluster-autoscaler-enabled: "true"
+    CrowdStrike_Exception: "EKS"

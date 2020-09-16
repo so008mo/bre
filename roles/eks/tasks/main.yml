@@ -1,0 +1,127 @@
+---
+- name: Set Vars
+  set_fact:
+    eksClusterName: "bre-eks-{{ env }}"
+    eksImageId: "{{ vpcCfg[env]['eksImageId'] }}"
+    vpc_id: "{{ vpcCfg[env]['vpc_id'] }}"
+    a_stack_az: "{{ regions[region]['vpcAvailabilityZone1'] }}"
+    b_stack_az: "{{ regions[region]['vpcAvailabilityZone2'] }}"
+    a_stack_priv_subnet: "{{ vpcCfg[env]['a_priv_subnet_id'] }}"
+    b_stack_priv_subnet: "{{ vpcCfg[env]['b_priv_subnet_id'] }}"
+    a_stack_pub_subnet: "{{ vpcCfg[env]['a_pub_subnet_id'] }}"
+    b_stack_pub_subnet: "{{ vpcCfg[env]['b_pub_subnet_id'] }}"
+    eksNgSize: "{{ vpcCfg[env]['eksNgSize'] }}"
+    eksNgMinSize: "{{ vpcCfg[env]['eksNgMinSize'] }}"
+    eksNgMaxSize: "{{ vpcCfg[env]['eksNgMaxSize'] }}"
+    eksInstanceType: "{{ vpcCfg[env]['eksInstanceType'] }}"
+    system_administrators: "{{ vpcCfg[env]['system_administrators'] }}"
+    keyPairName: "{{ vpcCfg[env]['keyPairName'] }}"
+
+- name: Generate eks-cluster.yaml
+  template:
+    src: "roles/{{ role_name }}/files/eks-cluster.yaml"
+    dest: /tmp/eks-cluster.yaml
+    
+# populate a clusters_exist list with names of clusters TAB "\t"
+- name: "Getting existing clusters list"
+  command: "aws --region {{ region }} eks list-clusters --query [clusters] --output text"
+  register: clusters_exist
+   
+# create a list from clusters_exist
+- set_fact:
+    found_clusters_list: "{{ clusters_exist.stdout.split('\t') }}"
+    
+- name: "Settting eksctl action to either Create or Update"
+  set_fact:
+    eksctl_action: "{{ 'create' if (eksClusterName not in found_clusters_list) else 'update' }}"
+    
+- name: "Running eksctl eksctl_action {{ eksctl_action | upper }} cluster with name {{ eksClusterName | upper }}"
+  command: "eksctl {{ eksctl_action }} cluster -f /tmp/eks-cluster.yaml"
+  
+- name: Add Kubectl configuration
+  shell: "aws eks update-kubeconfig --name {{ eksClusterName }} --region {{ region }}"
+  ignore_errors: yes
+  
+- name: Update aws-auth ConfigMap with System_Admins
+  command: "eksctl create iamidentitymapping --cluster {{ eksClusterName }} --arn {{ system_administrators }} --group system:masters --username gcsadmin --region {{ region }}"
+
+- name: Get OIDC Info - Issuer URL
+  shell: "aws eks describe-cluster --name {{ eksClusterName }} --region {{ region }} --query cluster.identity.oidc.issuer --output text"
+  register: oidc_issuer_url_output
+  
+- name: Get OIDC Info - Issuer Host Path
+  shell: "echo {{ oidc_issuer_url_output.stdout }} | cut -f 3- -d'/' "
+  register: oidc_issuer_host_path_output
+
+- name: Get OIDC Info - AWS Account Id
+  shell: "aws sts get-caller-identity --query Account --output text"
+  register: aws_account_id_output
+
+- name: Enable OIDC Provider
+  shell: "eksctl utils associate-iam-oidc-provider --name {{ eksClusterName }} --region {{ region }} --approve"
+  ignore_errors: yes
+
+- name: Set OIDC Provider Info
+  set_fact:
+    oidc_issuer_provider_arn: "arn:aws:iam::{{ aws_account_id_output.stdout }}:oidc-provider/{{ oidc_issuer_host_path_output.stdout }}"
+    oidc_issuer_provider_host_path: "{{ oidc_issuer_host_path_output.stdout }}"
+
+- name: Output OIDC Provider Info
+  debug:
+    msg: "oidc info: {{ oidc_issuer_provider_arn }}, oidc host path: {{ oidc_issuer_provider_host_path }} "
+  
+- name: Install Metrics Server
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'metrics-server.yaml') }}"
+    
+- name: Wait for Metrics Server Install
+  shell: "kubectl rollout status deployment.apps/metrics-server -n kube-system"
+  
+- name: Install Kubernetes dashboard
+  k8s:
+    state: present
+    definition: "{{ lookup('file', 'dashboard.yaml') }}"
+
+- name: Wait for Kubernetes dashboard Install
+  shell: "kubectl rollout status deployment.app/kubernetes-dashboard -n kubernetes-dashboard && kubectl rollout status deployment.app/dashboard-metrics-scraper -n kubernetes-dashboard"
+
+- name: Create read only role for k8s dashboard
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'dashboard-readonly-role.yaml') }}"
+
+- name: Create power user role for k8s dashboard
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'dashboard-poweruser.yaml') }}"
+
+- name: retreive the token for read only role
+  shell: "kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-dashboard-readonly | awk '{print $1}')"
+  register: auth_token_read_only
+
+- name: Install Cluster AutoScaler
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'cluster-autoscaler.yaml') }}"
+  
+- name: Configure prometheus values.yml
+  template:
+    src: "roles/{{ role_name }}/templates/prom-op-values-ebs.yaml"
+    dest: /tmp/prom-op-values-ebs.yaml
+    
+- name: Create Monitoring Namespace
+  k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: monitoring
+        
+- name: Install Prometheus operator
+  shell: "helm upgrade pm stable/prometheus-operator --install --namespace monitoring -f /tmp/prom-op-values-ebs.yaml --version 9.3.0"
+  ignore_errors: yes
+  
+- name: Wait for Prometheus Operator Install
+  shell: "kubectl rollout status deployment.apps/pm-prometheus-operator-operator -n monitoring"
